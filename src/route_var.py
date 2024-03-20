@@ -1,20 +1,9 @@
+import json
 class RouteVar:
-    # def __init__(self, RouteId, RouteVarId, RouteVarName, RouteVarShortName, RouteNo, StartStop, EndStop, Distance, Outbound, RunningTime):
-    #     self.RouteId = RouteId
-    #     self.RouteVarId = RouteVarId
-    #     self.RouteVarName = RouteVarName
-    #     self.RouteVarShortName = RouteVarShortName
-    #     self.RouteNo = RouteNo
-    #     self.StartStop = StartStop
-    #     self.EndStop = EndStop
-    #     self.Distance = Distance
-    #     self.Outbound = Outbound
-    #     self.RunningTime = RunningTime
     def __init__(self, Route):
-        for key, value in Route.items():
-            # print(key, value)
-            setattr(self, key, value)
-
+        for key in Route:
+            setattr(self, key, Route[key])
+        
     @property
     def route_id(self):
         return self.RouteId
@@ -88,10 +77,13 @@ class RouteVar:
     
     
 
-class RouteVarQuery(RouteVar):
-    def __init__(self, vars):
-        self.routeVar = vars
-        
+class RouteVarQuery:
+    def __init__(self, path):
+        with open(path, 'r', encoding='utf-8') as file:
+            json_data = file.read()   
+        json_parts = json_data.split(']\n[')
+        data = json.loads('[' + '],['.join(json_parts) + ']')
+        self.routeVar = [RouteVar(route) for item in data for route in item] 
     def searchByRouteId(self, mn, mx):
         return [var for var in self.routeVar if mn <= var.route_id <= mx]
     
