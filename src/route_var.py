@@ -78,39 +78,4 @@ class RouteVar:
     
 
 class RouteVarQuery:
-    def __init__(self, path):
-        with open(path, 'r', encoding='utf-8') as file:
-            json_data = file.read()   
-        json_parts = json_data.split(']\n[')
-        data = json.loads('[' + '],['.join(json_parts) + ']')
-        self.routeVar = [RouteVar(route) for item in data for route in item] 
-    def searchByRouteId(self, mn, mx):
-        return [var for var in self.routeVar if mn <= var.route_id <= mx]
-    
-    def searchByRouteVarId(self, mn, mx):
-        return [var for var in self.routeVar if mn <= var.route_var_id <= mx]
-    
-    def searchByRouteVarName(self, name):
-        return [var for var in self.routeVar if name in var.route_var_name]
-    
-    def searchByRouteVarShortName(self, name):
-        return [var for var in self.routeVar if name in var.route_var_short_name]
-    
-    def searchByRouteNo(self, no):
-        return [var for var in self.routeVar if no == var.route_no]
-    
-    def searchByStartStop(self, name):
-        return [var for var in self.routeVar if name in var.start_stop]
-    
-    def searchByEndStop(self, name):
-        return [var for var in self.routeVar if name in var.end_stop]
-    
-    def searchByDistance(self, mn, mx):
-        return [var for var in self.routeVar if mn <= var.distance <= mx]
-    
-    def searchByOutbound(self, name):
-        return [var for var in self.routeVar if name in var.outbound]
-    
-    def searchByRunningTime(self, mn, mx):
-        return [var for var in self.routeVar if mn <= var.running_time <= mx]
-    
+    def __init__
