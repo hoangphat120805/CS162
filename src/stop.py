@@ -1,10 +1,9 @@
-import json
+# {"StopId":35,"Code":"BX 01","Name":"Bến xe buýt Sài Gòn","StopType":"Bến xe","Zone":"Quận 1","Ward":"Phường Phạm Ngũ Lão","AddressNo":"BẾN XE BUÝT SÀI GÒN","Street":"Lê Lai","SupportDisability":"Có","Status":"Đang khai thác","Lng":106.689362,"Lat":10.767676,"Search":"BxbSG BXBSG LL","Routes":"03, 04, 102, 109, 120, 13, 140, 18, 19, 20, 27, 28, 34, 36, 39, 52, 61-6, 65, 69, 70-3, 72, 75, 86, 88, 93, D1"}
 
 class Stop:
-    def __init__(self, stop):
-        for key in stop:
-            setattr(self, key, stop[key])
-        
+    def __init__(self, stops):
+        for key in stops:
+            setattr(self, key, stops[key])
     @property
     def stop_id(self):
         return self.StopId
@@ -29,7 +28,6 @@ class Stop:
     @property
     def stop_type(self):
         return self.StopType
-    
     @stop_type.setter
     def stop_type(self, value):
         self.StopType = value
@@ -77,16 +75,16 @@ class Stop:
         self.Status = value
 
     @property
-    def lng(self):
+    def longitude(self):
         return self.Lng
-    @lng.setter
+    @longitude.setter
     def lng(self, value):
         self.Lng = value
 
     @property
-    def lat(self):
+    def latitude(self):
         return self.Lat
-    @lat.setter
+    @latitude.setter
     def lat(self, value):
         self.Lat = value
 
@@ -105,13 +103,14 @@ class Stop:
         self.Routes = value
 
 class StopQuery: 
-    def __init__(self, PATH):
-        with open(PATH, 'r', encoding='utf-8') as file:
-            file_data = file.read()
-        file_parts = file_data.split('}\n{')
-        data = json.loads('[' + '},{'.join(file_parts) + ']')
-        self.stops = [Stop(stop) for item in data for stop in item['Stops']]
-           
+    def __init__(self, raw_stops):
+        self.stops = []
+        for stops in raw_stops:
+            for stop in stops["Stops"]:
+                if any(stop["StopId"] == tmp.stop_id for tmp in self.stops) == False:
+                    self.stops.append(Stop(stop))
+        self.stops.sort(key=lambda x: x.stop_id)
+
     def searchByStopId(self, stop_id):
         return [stop for stop in self.stops if stop.stop_id == stop_id]
     
@@ -152,6 +151,64 @@ class StopQuery:
         return [stop for stop in self.stops if stop.search == search]
     
     def searchByRoutes(self, routes):
-        return [stop for stop in self.stops for route in stop.routes if route == routes]
+        return [stop for stop in self.stops if stop.routes == routes]
+    
+    def searchStop(self, **kwargs):
+        return [stop for stop in self.stops if all(getattr(stop, key) == value for key, value in kwargs.items())]
+
+class StopPath:
+    def __init__(self, data):
+        stops = []
+        for stop in data["Stops"]:
+            stops.append(Stop(stop))
+        self.Stops = stops
+        self.RouteId = data["RouteId"]
+        self.RouteVarId = data["RouteVarId"]
+
+    @property
+    def route_id(self):
+        return self.RouteId
+    @route_id.setter
+    def route_id(self, value):
+        self.RouteId = value
+
+    @property
+    def route_var_id(self):
+        return self.RouteVarId
+    @route_var_id.setter
+    def route_var_id(self, value):
+        self.RouteVarId = value
+
+    @property
+    def stops(self):
+        return self.Stops
+    @stops.setter
+    def stops(self, value):
+        self.Stops = value
+
+    @property
+    def __dict__(self):
+        return {
+            "RouteId": self.RouteId,
+            "RouteVarId": self.RouteVarId,
+            "Stops": [stop.__dict__ for stop in self.Stops]
+        }
     
 
+class StopPathQuery:
+    def __init__(self, raw_stops):
+        self.stop_paths = []
+        for stop_path in raw_stops:
+            self.stop_paths.append(StopPath(stop_path))
+        
+    def searchByRouteId(self, route_id):
+        return [stop_path for stop_path in self.stop_paths if stop_path.route_id == route_id]
+    
+    def searchByRouteVarId(self, route_var_id):
+        return [stop_path for stop_path in self.stop_paths if stop_path.route_var_id == route_var_id]
+    
+    def searchByRouteIdAndRouteVarId(self, route_id, route_var_id):
+        return [stop_path for stop_path in self.stop_paths if stop_path.route_id == route_id and stop_path.route_var_id == route_var_id]
+    
+    def searchStopPath(self, **kwargs):
+        return [stop_path for stop_path in self.stop_paths if all(getattr(stop_path, key) == value for key, value in kwargs.items())]

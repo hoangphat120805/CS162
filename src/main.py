@@ -1,17 +1,41 @@
+from process_file import read_file, outputAsJson, outputAsCSV
+from geojson import GeoJson
+from route_var import RouteVar, RouteVarQuery
+from stop import Stop, StopQuery, StopPathQuery, StopPath, StopPathQuery
+from path import Path, PathQuery
+from graph import Graph
+from test_ai import test_ai
 import json
-from route_var import RouteVar 
-from route_var import RouteVarQuery
-from stop import Stop
-from stop import StopQuery
+import time
+
 
 VARS_PATH = "src/data/vars.json"
 STOPS_PATH = "src/data/stops.json"
+PATHS_PATH = "src/data/paths.json"
 
-# Tạo đối tượng RouteVarQuery
-ans = RouteVarQuery(VARS_PATH).searchByRouteVarId(1, 1)
-print(ans.outputASJson())
+VARS_OUTPUT_PATH = "src/output/vars"
+STOPS_OUTPUT_PATH = "src/output/stops"
+PATHS_OUTPUT_PATH = "src/output/paths"
 
-# Tạo đối tượng StopQuery
-# ans1 = StopQuery(STOPS_PATH).searchByStopId(1)
-# print(json.dumps(ans1, default=lambda o: o.__dict__, separators=(",")))
+
+def main():
+    raw_vars = read_file(VARS_PATH)
+    raw_stops = read_file(STOPS_PATH)
+    raw_paths = read_file(PATHS_PATH)
+    route_var_query = RouteVarQuery(raw_vars)
+    stop_query = StopQuery(raw_stops)
+    path_query = PathQuery(raw_paths)
+    stop_path_query = StopPathQuery(raw_stops)
+    graph = Graph(route_var_query, stop_path_query, path_query, stop_query)
+    test_ai(route_var_query, stop_query, path_query, graph)
+
+
+
+    
+
+
+
+if __name__ == "__main__":
+    main()
+    
 
